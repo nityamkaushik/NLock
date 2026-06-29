@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">NLock</string>
+    <string name="decoy_label">Calculator</string>
+    <string name="accessibility_service_description">NLock uses this service to detect when a locked app is opened and display the lock screen. NLock does not read or collect any screen content.</string>
+    <string name="notification_channel_name">NLock Service</string>
+    <string name="notification_channel_description">Keeps NLock running to protect your apps</string>
+    <string name="health_check_title">NLock Protection Disabled</string>
+    <string name="health_check_text">Tap to re-enable app lock protection</string>
+    <string name="biometric_prompt_title">Unlock App</string>
+    <string name="biometric_prompt_subtitle">Use your fingerprint to unlock</string>
+    <string name="biometric_prompt_negative">Use PIN</string>
+</resources>

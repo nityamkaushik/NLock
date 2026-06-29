@@ -1,0 +1,59 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "d28cf481417898e5f360c003ddd84efe",
+    "entities": [
+      {
+        "tableName": "locked_apps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `is_locked` INTEGER NOT NULL, `vault_display_name` TEXT, `vault_icon_uri` TEXT, `grace_period_seconds` INTEGER NOT NULL, `hide_notification_content` INTEGER NOT NULL, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isLocked",
+            "columnName": "is_locked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vaultDisplayName",
+            "columnName": "vault_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "vaultIconUri",
+            "columnName": "vault_icon_uri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gracePeriodSeconds",
+            "columnName": "grace_period_seconds",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hideNotificationContent",
+            "columnName": "hide_notification_content",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd28cf481417898e5f360c003ddd84efe')"
+    ]
+  }
+}

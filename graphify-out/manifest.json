@@ -1,0 +1,252 @@
+{
+  "app/build.gradle.kts": {
+    "mtime": 1782058785.609895,
+    "ast_hash": "bf98d1f1990f3e581741526184d971c9",
+    "semantic_hash": "bf98d1f1990f3e581741526184d971c9"
+  },
+  "app/schemas/com.nityam.nlock.data.db.NLockDatabase/1.json": {
+    "mtime": 1782058934.865293,
+    "ast_hash": "08abc6d9416e6f461e1598e8c462c325",
+    "semantic_hash": "08abc6d9416e6f461e1598e8c462c325"
+  },
+  "app/src/androidTest/java/com/nityam/nlock/ExampleInstrumentedTest.kt": {
+    "mtime": 1782050883.0945764,
+    "ast_hash": "e848529d1425e138437602ad937bc604",
+    "semantic_hash": "e848529d1425e138437602ad937bc604"
+  },
+  "app/src/main/java/com/nityam/nlock/MainActivity.kt": {
+    "mtime": 1782058148.2044408,
+    "ast_hash": "927345acdf2f309d1d2806da77f22e58",
+    "semantic_hash": "927345acdf2f309d1d2806da77f22e58"
+  },
+  "app/src/main/java/com/nityam/nlock/NLockApplication.kt": {
+    "mtime": 1782057784.2251067,
+    "ast_hash": "8f91025f97e6d8253f5bb2dbd2dcbd45",
+    "semantic_hash": "8f91025f97e6d8253f5bb2dbd2dcbd45"
+  },
+  "app/src/main/java/com/nityam/nlock/data/db/LockedAppDao.kt": {
+    "mtime": 1782058268.7478006,
+    "ast_hash": "2c6ecfd00096224f32969b1b48c860d9",
+    "semantic_hash": "2c6ecfd00096224f32969b1b48c860d9"
+  },
+  "app/src/main/java/com/nityam/nlock/data/db/LockedAppEntity.kt": {
+    "mtime": 1782057761.6522417,
+    "ast_hash": "5b10fd93a15c2cf8b51d5b1c346b01a3",
+    "semantic_hash": "5b10fd93a15c2cf8b51d5b1c346b01a3"
+  },
+  "app/src/main/java/com/nityam/nlock/data/db/NLockDatabase.kt": {
+    "mtime": 1782057772.958508,
+    "ast_hash": "a3c0656f5fbe0f8cab1b636d3cd076f3",
+    "semantic_hash": "a3c0656f5fbe0f8cab1b636d3cd076f3"
+  },
+  "app/src/main/java/com/nityam/nlock/data/preferences/AppPreferences.kt": {
+    "mtime": 1782057777.4415095,
+    "ast_hash": "0a97b236244567c7686ae904d493cddc",
+    "semantic_hash": "0a97b236244567c7686ae904d493cddc"
+  },
+  "app/src/main/java/com/nityam/nlock/data/repository/AppLockRepository.kt": {
+    "mtime": 1782057780.2003136,
+    "ast_hash": "f9c642d98891fda8eca8a9109531fc4c",
+    "semantic_hash": "f9c642d98891fda8eca8a9109531fc4c"
+  },
+  "app/src/main/java/com/nityam/nlock/notification/AppNotificationMasker.kt": {
+    "mtime": 1782058038.6438644,
+    "ast_hash": "f0147e3d8db847a0db567ded24646767",
+    "semantic_hash": "f0147e3d8db847a0db567ded24646767"
+  },
+  "app/src/main/java/com/nityam/nlock/security/BiometricAuthManager.kt": {
+    "mtime": 1782057993.365237,
+    "ast_hash": "2e1e28e427e0534c580ae162a9a8e984",
+    "semantic_hash": "2e1e28e427e0534c580ae162a9a8e984"
+  },
+  "app/src/main/java/com/nityam/nlock/security/KeystoreManager.kt": {
+    "mtime": 1782057988.7981238,
+    "ast_hash": "88bfc5ea0f5fad5436aec1671ef0169a",
+    "semantic_hash": "88bfc5ea0f5fad5436aec1671ef0169a"
+  },
+  "app/src/main/java/com/nityam/nlock/security/PinHashManager.kt": {
+    "mtime": 1782057782.2129672,
+    "ast_hash": "79a8ef2067e33c217a9154c5f3b71291",
+    "semantic_hash": "79a8ef2067e33c217a9154c5f3b71291"
+  },
+  "app/src/main/java/com/nityam/nlock/service/AppLockAccessibilityService.kt": {
+    "mtime": 1782057946.7406106,
+    "ast_hash": "39fa4edbbe981a417ba7770eaf0338a5",
+    "semantic_hash": "39fa4edbbe981a417ba7770eaf0338a5"
+  },
+  "app/src/main/java/com/nityam/nlock/service/BootReceiver.kt": {
+    "mtime": 1782057942.6717227,
+    "ast_hash": "1cf5aa4d0ef701f5c7cb68122f1af660",
+    "semantic_hash": "1cf5aa4d0ef701f5c7cb68122f1af660"
+  },
+  "app/src/main/java/com/nityam/nlock/service/LockOverlayManager.kt": {
+    "mtime": 1782057944.7033498,
+    "ast_hash": "5224cb8f179cbe4638bbbf86f32322cf",
+    "semantic_hash": "5224cb8f179cbe4638bbbf86f32322cf"
+  },
+  "app/src/main/java/com/nityam/nlock/service/ScreenOffReceiver.kt": {
+    "mtime": 1782057929.5932996,
+    "ast_hash": "64c65d2735044aee07bb1fc0d1d6c935",
+    "semantic_hash": "64c65d2735044aee07bb1fc0d1d6c935"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/applist/AppListScreen.kt": {
+    "mtime": 1782058136.0198398,
+    "ast_hash": "a36e9fac7d438e5f7a9e75abfff6f641",
+    "semantic_hash": "a36e9fac7d438e5f7a9e75abfff6f641"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/applist/AppListViewModel.kt": {
+    "mtime": 1782058130.7571821,
+    "ast_hash": "da67d1be3ffd39b4d8c29ab1cf942855",
+    "semantic_hash": "da67d1be3ffd39b4d8c29ab1cf942855"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/components/OemGuideDialog.kt": {
+    "mtime": 1782058050.363318,
+    "ast_hash": "ef61b72d4c1d99298b5e9af265bb05be",
+    "semantic_hash": "ef61b72d4c1d99298b5e9af265bb05be"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/components/PinKeypad.kt": {
+    "mtime": 1782057878.742957,
+    "ast_hash": "eca74f0c58b1aadcbd571da2c51c1909",
+    "semantic_hash": "eca74f0c58b1aadcbd571da2c51c1909"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/components/TickMarkIndicator.kt": {
+    "mtime": 1782057871.1488447,
+    "ast_hash": "ad5e473f6e29dcb402d2436545dac41f",
+    "semantic_hash": "ad5e473f6e29dcb402d2436545dac41f"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/decoy/DecoyCalculatorScreen.kt": {
+    "mtime": 1782058146.1872153,
+    "ast_hash": "876ac9fa793bcd4c66f5813930a89daf",
+    "semantic_hash": "876ac9fa793bcd4c66f5813930a89daf"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/lock/BiometricProxyActivity.kt": {
+    "mtime": 1782057995.4000463,
+    "ast_hash": "e99b2b73f459cdf783d6a5c5c559e21c",
+    "semantic_hash": "e99b2b73f459cdf783d6a5c5c559e21c"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/lock/LockScreenContent.kt": {
+    "mtime": 1782057882.7602468,
+    "ast_hash": "648bf56aaa5850a7d1e0c549a8d447e9",
+    "semantic_hash": "648bf56aaa5850a7d1e0c549a8d447e9"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/lock/LockScreenState.kt": {
+    "mtime": 1782059061.5662088,
+    "ast_hash": "c8939455c7329b87e67073e54a0970b7",
+    "semantic_hash": "c8939455c7329b87e67073e54a0970b7"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/lock/LockScreenViewModel.kt": {
+    "mtime": 1782057997.423281,
+    "ast_hash": "c7ce9e4fca02c622419276d1850964af",
+    "semantic_hash": "c7ce9e4fca02c622419276d1850964af"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/navigation/NLockNavGraph.kt": {
+    "mtime": 1782058086.2627125,
+    "ast_hash": "e7bb06f6f885ac70a9c1dc83c0f7858c",
+    "semantic_hash": "e7bb06f6f885ac70a9c1dc83c0f7858c"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/settings/SettingsScreen.kt": {
+    "mtime": 1782058140.0731795,
+    "ast_hash": "eb6d0de45775a1c2565733e33ee5f6a7",
+    "semantic_hash": "eb6d0de45775a1c2565733e33ee5f6a7"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/settings/SettingsViewModel.kt": {
+    "mtime": 1782058138.0485342,
+    "ast_hash": "fa7f32b4befe6f760d7959f957209ad5",
+    "semantic_hash": "fa7f32b4befe6f760d7959f957209ad5"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/setup/SetupScreen.kt": {
+    "mtime": 1782058090.2847507,
+    "ast_hash": "6c3bf00b6038a8d5d6cda8cb0851bcc4",
+    "semantic_hash": "6c3bf00b6038a8d5d6cda8cb0851bcc4"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/setup/SetupViewModel.kt": {
+    "mtime": 1782058088.2646718,
+    "ast_hash": "226902bfadb7e7575b7d6f3ccd6545cd",
+    "semantic_hash": "226902bfadb7e7575b7d6f3ccd6545cd"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/theme/Color.kt": {
+    "mtime": 1782057859.0049658,
+    "ast_hash": "277915de529fdc3e32fec87dacf3f35c",
+    "semantic_hash": "277915de529fdc3e32fec87dacf3f35c"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/theme/Theme.kt": {
+    "mtime": 1782057863.613109,
+    "ast_hash": "cfdffaa4f42570d92d0724bd0ae647c5",
+    "semantic_hash": "cfdffaa4f42570d92d0724bd0ae647c5"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/theme/Type.kt": {
+    "mtime": 1782057869.1012871,
+    "ast_hash": "3c1b92b07ad64557bbf94b732228e304",
+    "semantic_hash": "3c1b92b07ad64557bbf94b732228e304"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/vault/VaultScreen.kt": {
+    "mtime": 1782058144.1666102,
+    "ast_hash": "cec1dc5c396daba9dab6cd1e9c2c314e",
+    "semantic_hash": "cec1dc5c396daba9dab6cd1e9c2c314e"
+  },
+  "app/src/main/java/com/nityam/nlock/ui/vault/VaultViewModel.kt": {
+    "mtime": 1782058142.1344345,
+    "ast_hash": "61693492cdfbab4737f5e141c592ffec",
+    "semantic_hash": "61693492cdfbab4737f5e141c592ffec"
+  },
+  "app/src/main/java/com/nityam/nlock/util/OemHelper.kt": {
+    "mtime": 1782058041.1592264,
+    "ast_hash": "350590e5a4dc634bd9ce013ec7ab6bb3",
+    "semantic_hash": "350590e5a4dc634bd9ce013ec7ab6bb3"
+  },
+  "app/src/main/java/com/nityam/nlock/util/PackageUtils.kt": {
+    "mtime": 1782058046.2731645,
+    "ast_hash": "75adaff0dd5a3c0734f7d4b13df08908",
+    "semantic_hash": "75adaff0dd5a3c0734f7d4b13df08908"
+  },
+  "app/src/main/java/com/nityam/nlock/util/PermissionHelper.kt": {
+    "mtime": 1782058043.9612114,
+    "ast_hash": "3641a8104a5305b16ec879a1c9591bf1",
+    "semantic_hash": "3641a8104a5305b16ec879a1c9591bf1"
+  },
+  "app/src/main/java/com/nityam/nlock/worker/ServiceHealthCheckWorker.kt": {
+    "mtime": 1782058048.3007953,
+    "ast_hash": "7a50c48cd36362a22c17f02c4e11eef4",
+    "semantic_hash": "7a50c48cd36362a22c17f02c4e11eef4"
+  },
+  "app/src/test/java/com/nityam/nlock/ExampleUnitTest.kt": {
+    "mtime": 1782050883.0373256,
+    "ast_hash": "79da08c9b479e89165c6d3025d0eba74",
+    "semantic_hash": "79da08c9b479e89165c6d3025d0eba74"
+  },
+  "app/src/test/java/com/nityam/nlock/data/repository/AppLockRepositoryTest.kt": {
+    "mtime": 1782058177.2704198,
+    "ast_hash": "f1a693ec3faa0de92400cdad03e3ed79",
+    "semantic_hash": "f1a693ec3faa0de92400cdad03e3ed79"
+  },
+  "app/src/test/java/com/nityam/nlock/security/PinHashManagerTest.kt": {
+    "mtime": 1782058171.191395,
+    "ast_hash": "124b70dc629b4d566683835ce1a5ed85",
+    "semantic_hash": "124b70dc629b4d566683835ce1a5ed85"
+  },
+  "app/src/test/java/com/nityam/nlock/service/GracePeriodLogicTest.kt": {
+    "mtime": 1782058175.2245061,
+    "ast_hash": "e7d92f066b6124285c7aa3581ecf509b",
+    "semantic_hash": "e7d92f066b6124285c7aa3581ecf509b"
+  },
+  "app/src/test/java/com/nityam/nlock/util/OemHelperTest.kt": {
+    "mtime": 1782058173.2128823,
+    "ast_hash": "5124c15bacf2e75b980302c860089afc",
+    "semantic_hash": "5124c15bacf2e75b980302c860089afc"
+  },
+  "build.gradle.kts": {
+    "mtime": 1782058700.3322916,
+    "ast_hash": "f821ab9f7fe230a49da7f8fb5fbc89d7",
+    "semantic_hash": "f821ab9f7fe230a49da7f8fb5fbc89d7"
+  },
+  "gradlew": {
+    "mtime": 1782050879.7307522,
+    "ast_hash": "266606e78242737ef3da02a80ea0564d",
+    "semantic_hash": "266606e78242737ef3da02a80ea0564d"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1782050881.9065459,
+    "ast_hash": "10a381e8f2e9de77388f378c46508d12",
+    "semantic_hash": "10a381e8f2e9de77388f378c46508d12"
+  }
+}

@@ -13,11 +13,11 @@ internal sealed interface LockScreenState {
         val pinLength: Int,
         val enteredDigits: Int,
         val biometricAvailable: Boolean,
+        val isBiometricPrompting: Boolean,
         val showError: Boolean,
     ) : LockScreenState
 
-    /** Authentication succeeded — overlay should dismiss. */
-    data class Unlocked(val packageName: String) : LockScreenState
+    /** No lock screen needed right now. */
 
     /** No lock screen needed right now. */
     data object Idle : LockScreenState

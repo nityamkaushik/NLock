@@ -8,43 +8,65 @@ import androidx.fragment.app.FragmentActivity
 import com.nityam.nlock.R
 
 /**
- * Manages biometric authentication.
+ * Manages biometric authentication (fingerprint / face).
  *
- * Uses [androidx.biometric.BiometricPrompt] to authenticate the user.
- * It gates unlock on the crypto operation completing, not just the boolean callback.
+ * Uses [BIOMETRIC_WEAK] to support the widest range of devices — both Class 2
+ * (weak, e.g. some OEM fingerprint sensors) and Class 3 (strong) biometrics.
+ *
+ * A "Use PIN" negative button is shown so the user can fall back to our custom
+ * PIN pad without ever seeing the system's own credential screen.
  */
 internal object BiometricAuthManager {
 
+    /**
+     * Whether the device has at least one enrolled biometric (fingerprint / face).
+     */
     fun canAuthenticate(context: Context): Boolean {
         val biometricManager = BiometricManager.from(context)
-        val result = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        val result = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_WEAK
+        )
         return result == BiometricManager.BIOMETRIC_SUCCESS
     }
 
+    /**
+     * Show the system biometric prompt.
+     *
+     * @param onSuccess  Called when biometric auth succeeds.
+     * @param onError    Called on system error or user cancel (swipe away).
+     * @param onUsePin   Called when the user taps the "Use PIN" button.
+     */
     fun authenticate(
         activity: FragmentActivity,
         onSuccess: () -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onUsePin: (() -> Unit)? = null,
     ) {
         val executor = ContextCompat.getMainExecutor(activity)
 
         val callback = object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
-                onError(errString.toString())
+                when (errorCode) {
+                    BiometricPrompt.ERROR_NEGATIVE_BUTTON -> {
+                        // User tapped "Use PIN"
+                        onUsePin?.invoke() ?: onError(errString.toString())
+                    }
+                    else -> {
+                        // User cancelled, lockout, HW error, etc.
+                        onError(errString.toString())
+                    }
+                }
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
-                // CryptoObject was passed in authenticate() call — the callback
-                // being invoked is sufficient proof of successful biometric auth.
-                // Some device ROMs return null CryptoObject despite genuine success.
                 onSuccess()
             }
 
             override fun onAuthenticationFailed() {
                 super.onAuthenticationFailed()
-                // Do not call onError here, wait for error or success
+                // Single attempt failed (wrong finger) — system handles retries.
             }
         }
 
@@ -54,14 +76,13 @@ internal object BiometricAuthManager {
             .setTitle(activity.getString(R.string.biometric_prompt_title))
             .setSubtitle(activity.getString(R.string.biometric_prompt_subtitle))
             .setNegativeButtonText(activity.getString(R.string.biometric_prompt_negative))
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
             .build()
 
         try {
-            val cipher = KeystoreManager.getCipher()
-            biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            biometricPrompt.authenticate(promptInfo)
         } catch (e: Exception) {
-            onError(e.localizedMessage ?: "Unknown Keystore Error")
+            onError(e.localizedMessage ?: "Unknown Biometric Error")
         }
     }
 }

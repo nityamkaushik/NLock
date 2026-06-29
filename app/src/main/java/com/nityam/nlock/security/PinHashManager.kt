@@ -1,6 +1,8 @@
 package com.nityam.nlock.security
 
 import android.util.Base64
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -22,10 +24,10 @@ internal class PinHashManager {
      *
      * @return Pair of (Base64-encoded hash, Base64-encoded salt).
      */
-    internal fun hashPin(pin: String): Pair<String, String> {
+    internal suspend fun hashPin(pin: String): Pair<String, String> = withContext(Dispatchers.Default) {
         val salt = ByteArray(SALT_LENGTH_BYTES).also { SecureRandom().nextBytes(it) }
         val hash = deriveKey(pin = pin, salt = salt)
-        return Pair(
+        Pair(
             Base64.encodeToString(hash, Base64.NO_WRAP),
             Base64.encodeToString(salt, Base64.NO_WRAP),
         )
@@ -37,15 +39,15 @@ internal class PinHashManager {
      * Uses [MessageDigest.isEqual] for constant-time comparison
      * to prevent timing side-channel attacks.
      */
-    internal fun verifyPin(
+    internal suspend fun verifyPin(
         pin: String,
         storedHashBase64: String,
         storedSaltBase64: String,
-    ): Boolean {
+    ): Boolean = withContext(Dispatchers.Default) {
         val storedSalt = Base64.decode(storedSaltBase64, Base64.NO_WRAP)
         val storedHash = Base64.decode(storedHashBase64, Base64.NO_WRAP)
         val candidateHash = deriveKey(pin = pin, salt = storedSalt)
-        return MessageDigest.isEqual(storedHash, candidateHash)
+        MessageDigest.isEqual(storedHash, candidateHash)
     }
 
     private fun deriveKey(pin: String, salt: ByteArray): ByteArray {

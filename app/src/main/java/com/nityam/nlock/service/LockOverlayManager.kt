@@ -4,99 +4,49 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.os.Build
+import android.view.View
 import android.view.WindowManager
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.lifecycle.setViewTreeViewModelStoreOwner
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.nityam.nlock.NLockApplication
-import com.nityam.nlock.security.BiometricAuthManager
-import com.nityam.nlock.ui.lock.BiometricProxyActivity
-import com.nityam.nlock.ui.lock.LockScreenContent
-import com.nityam.nlock.ui.lock.LockScreenState
-import com.nityam.nlock.ui.lock.LockScreenViewModel
-import com.nityam.nlock.ui.theme.NLockTheme
+import com.nityam.nlock.ui.lock.LockScreenActivity
 
 /**
- * Custom LifecycleOwner, ViewModelStoreOwner, and SavedStateRegistryOwner for
- * the ComposeView in the AccessibilityService.
- */
-internal class ServiceLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
-    private val lifecycleRegistry = LifecycleRegistry(this)
-    private val savedStateRegistryController = SavedStateRegistryController.create(this)
-    private val store = ViewModelStore()
-
-    override val lifecycle: Lifecycle
-        get() = lifecycleRegistry
-
-    override val savedStateRegistry: SavedStateRegistry
-        get() = savedStateRegistryController.savedStateRegistry
-
-    override val viewModelStore: ViewModelStore
-        get() = store
-
-    fun onCreate() {
-        savedStateRegistryController.performRestore(null)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    }
-
-    fun onResume() {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    }
-
-    fun onPause() {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-    }
-
-    fun onDestroy() {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        store.clear()
-    }
-}
-
-/**
- * Manages a pre-inflated [ComposeView] overlay attached via [WindowManager].
+ * Manages app locking via a two-layer approach:
  *
- * The overlay uses [TYPE_ACCESSIBILITY_OVERLAY], which does NOT require
- * [SYSTEM_ALERT_WINDOW] permission — the AccessibilityService has inherent
- * overlay permission.
+ * 1. **Blocker overlay** — A simple opaque dark [View] (TYPE_ACCESSIBILITY_OVERLAY)
+ *    that appears instantly to cover the locked app's content before the activity
+ *    can render. It's FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE so it never
+ *    intercepts user input. Once the [LockScreenActivity] draws its first frame
+ *    (same dark background → seamless), the blocker fades to transparent.
  *
- * The view is inflated once at service start and reused for every lock event.
- * [show] attaches it; [dismiss] detaches it. No new Activity is launched.
+ * 2. **[LockScreenActivity]** — A proper FragmentActivity hosting the full lock screen
+ *    UI (biometric prompt + PIN keypad). Using an Activity gives us native lifecycle
+ *    for BiometricPrompt and a smooth, lag-free UX.
  *
- * The [LockScreenViewModel] is created once at service start and [prepared][LockScreenViewModel.prepare]
- * each time [show] is called with a new target package. Compose observes the ViewModel state
- * reactively; when [LockScreenState.Unlocked] is emitted, the overlay auto-dismisses.
+ * Audio focus is also managed here to mute media from the locked app.
  */
 internal class LockOverlayManager(private val service: AccessibilityService) {
 
     private lateinit var windowManager: WindowManager
-    private lateinit var overlayView: ComposeView
-    private lateinit var serviceLifecycleOwner: ServiceLifecycleOwner
-    private lateinit var viewModel: LockScreenViewModel
-    private var isAttached: Boolean = false
-    private var currentTargetPackage: String? = null
+    private lateinit var blockerView: View
+
+    internal var isAttached: Boolean = false
+        private set
+    internal var currentTargetPackage: String? = null
+        private set
+
+    private var isBlockerAttached = false
+    private var audioFocusChangeListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var audioFocusRequest: Any? = null
 
     private val layoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.MATCH_PARENT,
         WindowManager.LayoutParams.MATCH_PARENT,
         WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
             or WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
         PixelFormat.TRANSLUCENT
@@ -104,103 +54,140 @@ internal class LockOverlayManager(private val service: AccessibilityService) {
 
     fun preInflate() {
         windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        blockerView = View(service).apply {
+            setBackgroundColor(android.graphics.Color.parseColor("#111318"))
+        }
+    }
 
-        // Create ViewModel with real dependencies
-        val app = service.application as NLockApplication
-        viewModel = LockScreenViewModel(
-            repository = app.repository,
-            pinHashManager = app.pinHashManager,
-        )
-
-        serviceLifecycleOwner = ServiceLifecycleOwner()
-        serviceLifecycleOwner.onCreate()
-
-        overlayView = ComposeView(service).apply {
-            setViewTreeLifecycleOwner(serviceLifecycleOwner)
-            setViewTreeViewModelStoreOwner(serviceLifecycleOwner)
-            setViewTreeSavedStateRegistryOwner(serviceLifecycleOwner)
-            setContent {
-                NLockTheme {
-                    val state by viewModel.state.collectAsState()
-
-                    // Auto-dismiss when unlocked
-                    LaunchedEffect(state) {
-                        if (state is LockScreenState.Unlocked) {
-                            val pkg = (state as LockScreenState.Unlocked).packageName
-                            val svc = AppLockAccessibilityService.instance
-                            svc?.recordUnlock(pkg)
-                            dismiss()
-                            viewModel.reset()
-                        }
-                    }
-
-                    LockScreenContent(
-                        state = state,
-                        onDigit = { viewModel.onDigit(it) },
-                        onBackspace = { viewModel.onBackspace() },
-                        onConfirm = { viewModel.onConfirm() },
-                        onBiometric = { launchBiometricProxy() },
-                    )
-                }
+    /**
+     * Show the lock for [targetPackage].
+     *
+     * 1. Instantly attaches the dark blocker overlay (prevents flash of locked content).
+     * 2. Launches [LockScreenActivity] with the target package.
+     */
+    fun show(targetPackage: String) {
+        // If already showing for the same package and the activity is alive, skip
+        if (isAttached && currentTargetPackage == targetPackage) {
+            if (LockScreenActivity.isInForeground || LockScreenActivity.currentInstance != null) {
+                return
             }
         }
-    }
-
-    fun show(targetPackage: String) {
-        // If already showing the same package, don't re-prepare
-        if (isAttached && currentTargetPackage == targetPackage) return
 
         currentTargetPackage = targetPackage
+        isAttached = true
 
-        // Load app icon from PackageManager
-        val icon = try {
-            service.packageManager.getApplicationIcon(targetPackage)
-        } catch (_: Exception) {
-            null
+        // 1. Show the opaque blocker instantly
+        showBlocker()
+
+        // 2. Request audio focus to mute locked app's media
+        requestAudioFocus()
+
+        // 3. Launch the full lock screen activity
+        val intent = Intent(service, LockScreenActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            putExtra(LockScreenActivity.EXTRA_TARGET_PACKAGE, targetPackage)
         }
-
-        // Check biometric availability from preferences (synchronous check)
-        val biometricAvailable = BiometricAuthManager.canAuthenticate(service)
-
-        // Prepare the ViewModel for this app
-        viewModel.prepare(
-            packageName = targetPackage,
-            icon = icon,
-            biometricAvailable = biometricAvailable,
-        )
-
-        if (!isAttached) {
-            serviceLifecycleOwner.onResume()
-            windowManager.addView(overlayView, layoutParams)
-            isAttached = true
-        }
+        service.startActivity(intent)
     }
 
+    /**
+     * Dismiss the lock screen entirely (blocker + activity).
+     */
     fun dismiss() {
-        if (isAttached) {
-            serviceLifecycleOwner.onPause()
-            windowManager.removeView(overlayView)
-            isAttached = false
-            currentTargetPackage = null
-        }
+        if (!isAttached) return
+        isAttached = false
+        currentTargetPackage = null
+        removeBlocker()
+        abandonAudioFocus()
+        LockScreenActivity.currentInstance?.finish()
     }
 
     fun destroy() {
         dismiss()
-        serviceLifecycleOwner.onDestroy()
     }
 
-    /** Called by [BiometricProxyActivity] on successful biometric auth. */
-    internal fun onBiometricSuccess() {
-        viewModel.onBiometricSuccess()
-    }
+    // ── Blocker Management ──
 
-    private fun launchBiometricProxy() {
-        val pkg = currentTargetPackage ?: return
-        val intent = Intent(service, BiometricProxyActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra(BiometricProxyActivity.EXTRA_TARGET_PACKAGE, pkg)
+    private fun showBlocker() {
+        if (!isBlockerAttached) {
+            blockerView.alpha = 1f
+            windowManager.addView(blockerView, layoutParams)
+            isBlockerAttached = true
+        } else {
+            // Already attached — make it opaque again (may have been faded out)
+            blockerView.animate().cancel()
+            blockerView.alpha = 1f
         }
-        service.startActivity(intent)
+    }
+
+    /**
+     * Called by [LockScreenActivity] once its window is drawn, fading the blocker
+     * to reveal the activity underneath. Since both use the same dark background,
+     * the transition is visually seamless.
+     */
+    internal fun hideBlocker() {
+        if (isBlockerAttached) {
+            blockerView.animate()
+                .alpha(0f)
+                .setDuration(120)
+                .start()
+        }
+    }
+
+    private fun removeBlocker() {
+        if (isBlockerAttached) {
+            blockerView.animate().cancel()
+            windowManager.removeView(blockerView)
+            isBlockerAttached = false
+        }
+    }
+
+    // ── Audio Focus ──
+
+    private fun requestAudioFocus() {
+        if (audioFocusChangeListener != null) return // Already holding focus
+
+        val audioManager = service.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val listener = AudioManager.OnAudioFocusChangeListener { }
+        audioFocusChangeListener = listener
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
+                .setOnAudioFocusChangeListener(listener)
+                .build()
+            audioFocusRequest = request
+            audioManager.requestAudioFocus(request)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                listener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+            )
+        }
+    }
+
+    private fun abandonAudioFocus() {
+        val audioManager = service.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            (audioFocusRequest as? AudioFocusRequest)?.let {
+                audioManager.abandonAudioFocusRequest(it)
+            }
+            audioFocusRequest = null
+        } else {
+            audioFocusChangeListener?.let {
+                @Suppress("DEPRECATION")
+                audioManager.abandonAudioFocus(it)
+            }
+        }
+        audioFocusChangeListener = null
     }
 }

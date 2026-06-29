@@ -1,7 +1,7 @@
 package com.nityam.nlock.ui.lock
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +40,10 @@ import kotlin.math.roundToInt
 
 /**
  * The main lock screen overlay UI.
+ *
+ * Always shows the full PIN pad. When biometrics are prompting,
+ * the PIN pad stays visible behind the system biometric dialog
+ * so there's never a blank screen.
  */
 @Composable
 internal fun LockScreenContent(
@@ -64,29 +69,37 @@ internal fun LockScreenContent(
         }
     }
 
-    val backgroundColor by animateColorAsState(
-        targetValue = if (state.showError) {
-            NLockTheme.colors.warning.copy(alpha = 0.15f)
-        } else {
-            NLockTheme.colors.base
-        },
+    val errorTintAlpha by animateFloatAsState(
+        targetValue = if (state.showError) 0.15f else 0f,
         animationSpec = tween(200),
-        label = "bg_color_anim"
+        label = "error_tint_anim"
     )
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center,
+            .background(NLockTheme.colors.base) // Always opaque
+            .then(
+                if (errorTintAlpha > 0f) {
+                    Modifier.background(NLockTheme.colors.warning.copy(alpha = errorTintAlpha))
+                } else {
+                    Modifier
+                }
+            ),
+        contentAlignment = Alignment.BottomCenter,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.offset {
-                IntOffset(x = shakeOffset.value.roundToInt(), y = 0)
-            }
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 48.dp)
+                .offset {
+                    IntOffset(x = shakeOffset.value.roundToInt(), y = 0)
+                }
         ) {
+            Spacer(modifier = Modifier.weight(1f))
+
             // 1. App Icon
             val iconBitmap = remember(state.appIconDrawable) {
                 state.appIconDrawable?.toBitmap(
@@ -116,14 +129,14 @@ internal fun LockScreenContent(
 
             // 2. "Enter PIN" label
             Text(
-                text = "Enter PIN",
+                text = if (state.isBiometricPrompting) "Unlock with Fingerprint" else "Enter PIN",
                 style = MaterialTheme.typography.bodyMedium,
                 color = NLockTheme.colors.textSecondary,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Dot Indicator
+            // 3. Dot Indicator — always visible
             TickMarkIndicator(
                 pinLength = state.pinLength,
                 filledCount = state.enteredDigits,
@@ -131,7 +144,7 @@ internal fun LockScreenContent(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 4. Keypad
+            // 4. Keypad — always visible so there's never a blank screen
             PinKeypad(
                 onDigit = onDigit,
                 onBackspace = onBackspace,
@@ -140,13 +153,17 @@ internal fun LockScreenContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 5. Biometric Icon
+            // 5. Biometric Icon — always visible when biometric is available
             if (state.biometricAvailable) {
                 IconButton(onClick = onBiometric) {
                     Icon(
                         imageVector = Icons.Filled.Fingerprint,
                         contentDescription = "Use Biometrics",
-                        tint = NLockTheme.colors.accent,
+                        tint = if (state.isBiometricPrompting) {
+                            NLockTheme.colors.accent.copy(alpha = 0.5f)
+                        } else {
+                            NLockTheme.colors.accent
+                        },
                         modifier = Modifier.size(36.dp),
                     )
                 }

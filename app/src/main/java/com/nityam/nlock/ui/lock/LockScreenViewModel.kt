@@ -21,13 +21,16 @@ import kotlinx.coroutines.launch
  */
 internal class LockScreenViewModel(
     private val repository: AppLockRepository,
-    private val pinHashManager: PinHashManager
+    private val pinHashManager: PinHashManager,
+    private val onUnlock: (String) -> Unit
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LockScreenState>(LockScreenState.Idle)
     val state: StateFlow<LockScreenState> = _state.asStateFlow()
 
     private var pinBuffer = ""
+    private var cachedHash: String? = null
+    private var cachedSalt: String? = null
 
     /**
      * Reconfigure the lock screen for a new target app.
@@ -46,8 +49,25 @@ internal class LockScreenViewModel(
             pinLength = pinLength,
             enteredDigits = 0,
             biometricAvailable = biometricAvailable,
+            isBiometricPrompting = false,
             showError = false,
         )
+        
+        // Prefetch hash and salt for faster validation
+        viewModelScope.launch {
+            if (cachedHash == null) {
+                cachedHash = repository.pinHash.firstOrNull()
+                cachedSalt = repository.pinSalt.firstOrNull()
+            }
+        }
+    }
+
+    fun setBiometricPrompting(isPrompting: Boolean) {
+        _state.update {
+            if (it is LockScreenState.Locked) {
+                it.copy(isBiometricPrompting = isPrompting)
+            } else it
+        }
     }
 
     /** Reset to idle (overlay dismissed). */
@@ -93,15 +113,13 @@ internal class LockScreenViewModel(
         if (pinBuffer.isEmpty()) return
 
         viewModelScope.launch {
-            val hash = repository.pinHash.firstOrNull() ?: return@launch
-            val salt = repository.pinSalt.firstOrNull() ?: return@launch
+            val hash = cachedHash ?: repository.pinHash.firstOrNull() ?: return@launch
+            val salt = cachedSalt ?: repository.pinSalt.firstOrNull() ?: return@launch
 
             val isCorrect = pinHashManager.verifyPin(pinBuffer, hash, salt)
 
             if (isCorrect) {
-                _state.value = LockScreenState.Unlocked(
-                    packageName = currentState.targetPackageName
-                )
+                onUnlock(currentState.targetPackageName)
             } else {
                 pinBuffer = ""
                 _state.value = currentState.copy(
@@ -117,11 +135,9 @@ internal class LockScreenViewModel(
         }
     }
 
-    /** Called when biometric auth succeeds externally (from BiometricProxyActivity). */
+    /** Called when biometric auth succeeds (from LockScreenActivity). */
     fun onBiometricSuccess() {
         val currentState = _state.value as? LockScreenState.Locked ?: return
-        _state.value = LockScreenState.Unlocked(
-            packageName = currentState.targetPackageName
-        )
+        onUnlock(currentState.targetPackageName)
     }
 }

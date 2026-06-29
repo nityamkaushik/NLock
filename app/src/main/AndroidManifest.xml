@@ -48,13 +48,15 @@
             </intent-filter>
         </activity-alias>
 
-        <!-- Transparent activity to host BiometricPrompt from service context -->
+        <!-- Full lock screen activity (biometric + PIN) -->
         <activity
-            android:name=".ui.lock.BiometricProxyActivity"
+            android:name=".ui.lock.LockScreenActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:theme="@style/Theme.NLock.LockScreen"
             android:excludeFromRecents="true"
-            android:taskAffinity="" />
+            android:taskAffinity="com.nityam.nlock.lock"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
 
         <!-- Core detection service -->
         <service

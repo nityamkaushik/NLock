@@ -22,8 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
 import com.nityam.nlock.ui.theme.NLockTheme
 
 /**
@@ -78,10 +82,14 @@ private fun KeypadButton(
 ) {
     val view = LocalView.current
     val isActionKey = key == "backspace" || key == "confirm"
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(targetValue = if (isPressed) 0.85f else 1f, label = "button_scale")
 
     Box(
         modifier = Modifier
             .size(64.dp)
+            .scale(scale)
             .clip(CircleShape)
             .then(
                 if (!isActionKey) {
@@ -94,7 +102,7 @@ private fun KeypadButton(
                 }
             )
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = ripple(bounded = true, radius = 32.dp),
             ) {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)

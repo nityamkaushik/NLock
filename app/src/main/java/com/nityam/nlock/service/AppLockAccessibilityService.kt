@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
 import com.nityam.nlock.NLockApplication
+import com.nityam.nlock.ui.lock.LockScreenActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,6 +25,10 @@ internal class AppLockAccessibilityService : AccessibilityService() {
     private val lockedPackages = HashSet<String>()
     private val gracePeriodMap = ConcurrentHashMap<String, Long>()
     private var currentGracePeriodMs: Long = 0L
+    private var currentForegroundPackage: String? = null
+    private var activelyUnlockedPackage: String? = null
+    internal var isBiometricEnabled: Boolean = false
+        private set
 
     internal lateinit var overlayManager: LockOverlayManager
         private set
@@ -43,10 +48,35 @@ internal class AppLockAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
-        if (pkg == packageName) return
+        val className = event.className?.toString() ?: ""
 
-        if (pkg in lockedPackages && !isWithinGracePeriod(pkg)) {
-            overlayManager.show(targetPackage = pkg)
+        if (pkg == packageName || pkg == "com.android.systemui") return
+        if (className.contains("InputMethod") || className.contains("SoftInput") || pkg.contains("inputmethod") || pkg.contains("keyboard")) return
+
+        if (pkg != currentForegroundPackage) {
+            if (currentGracePeriodMs <= 0L && activelyUnlockedPackage != null && activelyUnlockedPackage != pkg) {
+                gracePeriodMap.remove(activelyUnlockedPackage!!)
+            }
+            if (activelyUnlockedPackage != null && activelyUnlockedPackage != pkg) {
+                activelyUnlockedPackage = null
+            }
+            currentForegroundPackage = pkg
+
+            if (overlayManager.isAttached && overlayManager.currentTargetPackage != pkg) {
+                // Only dismiss if the lock screen is not actively in the foreground
+                // (biometric dialogs from OEM packages could falsely trigger this)
+                if (!LockScreenActivity.isInForeground) {
+                    overlayManager.dismiss()
+                }
+            }
+        }
+
+        if (pkg in lockedPackages) {
+            if (pkg == activelyUnlockedPackage) return
+
+            if (!isWithinGracePeriod(pkg)) {
+                overlayManager.show(targetPackage = pkg)
+            }
         }
     }
 
@@ -64,10 +94,13 @@ internal class AppLockAccessibilityService : AccessibilityService() {
 
     internal fun recordUnlock(packageName: String) {
         gracePeriodMap[packageName] = System.currentTimeMillis()
+        activelyUnlockedPackage = packageName
     }
 
     internal fun clearAllGracePeriods() {
         gracePeriodMap.clear()
+        activelyUnlockedPackage = null
+        currentForegroundPackage = null
     }
 
     private fun isWithinGracePeriod(packageName: String): Boolean {
@@ -95,6 +128,11 @@ internal class AppLockAccessibilityService : AccessibilityService() {
         serviceScope.launch {
             app.repository.observeGracePeriodMs().collect { ms ->
                 currentGracePeriodMs = ms
+            }
+        }
+        serviceScope.launch {
+            app.repository.biometricEnabled.collect { enabled ->
+                isBiometricEnabled = enabled
             }
         }
     }

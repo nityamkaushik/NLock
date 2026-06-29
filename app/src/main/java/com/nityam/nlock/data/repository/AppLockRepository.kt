@@ -36,6 +36,7 @@ internal class AppLockRepository(
     val setupComplete: Flow<Boolean> = preferences.setupComplete
     val appDisguiseEnabled: Flow<Boolean> = preferences.appDisguiseEnabled
     val appDisguiseLabel: Flow<String> = preferences.appDisguiseLabel
+    val showSystemApps: Flow<Boolean> = preferences.showSystemApps
 
     /** Grace period as milliseconds for the service hot path. */
     fun observeGracePeriodMs(): Flow<Long> =
@@ -58,4 +59,7 @@ internal class AppLockRepository(
 
     suspend fun setAppDisguise(enabled: Boolean, label: String) =
         preferences.setAppDisguise(enabled = enabled, label = label)
+
+    suspend fun setShowSystemApps(enabled: Boolean) =
+        preferences.setShowSystemApps(enabled)
 }

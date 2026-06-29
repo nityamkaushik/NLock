@@ -34,6 +34,7 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
         val APP_DISGUISE_ENABLED = booleanPreferencesKey("app_disguise_enabled")
         val APP_DISGUISE_LABEL = stringPreferencesKey("app_disguise_label")
         val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
+        val SHOW_SYSTEM_APPS = booleanPreferencesKey("show_system_apps")
     }
 
     // ── Reads (Flow) ──
@@ -47,6 +48,7 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
     val appDisguiseEnabled: Flow<Boolean> = dataStore.data.map { it[APP_DISGUISE_ENABLED] ?: false }
     val appDisguiseLabel: Flow<String> = dataStore.data.map { it[APP_DISGUISE_LABEL] ?: "Calculator" }
     val setupComplete: Flow<Boolean> = dataStore.data.map { it[SETUP_COMPLETE] ?: false }
+    val showSystemApps: Flow<Boolean> = dataStore.data.map { it[SHOW_SYSTEM_APPS] ?: false }
 
     // ── Writes (suspend) ──
 
@@ -79,5 +81,9 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
             prefs[APP_DISGUISE_ENABLED] = enabled
             prefs[APP_DISGUISE_LABEL] = label
         }
+    }
+
+    internal suspend fun setShowSystemApps(enabled: Boolean) {
+        dataStore.edit { it[SHOW_SYSTEM_APPS] = enabled }
     }
 }

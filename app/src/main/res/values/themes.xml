@@ -2,4 +2,14 @@
 <resources>
 
     <style name="Theme.NLock" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Full-screen dark lock screen — no status bar, no nav bar, no transitions -->
+    <style name="Theme.NLock.LockScreen" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#111318</item>
+        <item name="android:statusBarColor">#111318</item>
+        <item name="android:navigationBarColor">#111318</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">false</item>
+        <item name="android:colorBackground">#111318</item>
+    </style>
 </resources>

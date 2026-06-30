@@ -25,6 +25,12 @@ internal class SettingsViewModel(
     val showSystemApps: StateFlow<Boolean> = repository.showSystemApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val uninstallProtection: StateFlow<Boolean> = repository.uninstallProtection
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val requirePasswordForNlock: StateFlow<Boolean> = repository.requirePasswordForNlock
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val gracePeriodSeconds: StateFlow<Int> = repository.observeGracePeriodMs()
         .map { (it / 1000L).toInt() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -56,6 +62,18 @@ internal class SettingsViewModel(
     fun setGracePeriodSeconds(seconds: Int) {
         viewModelScope.launch {
             repository.setGracePeriodSeconds(seconds)
+        }
+    }
+
+    fun setUninstallProtection(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setUninstallProtection(enabled)
+        }
+    }
+
+    fun setRequirePasswordForNlock(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setRequirePasswordForNlock(enabled)
         }
     }
 }

@@ -56,6 +56,8 @@ internal fun SettingsScreen(
     val biometricEnabled by viewModel.biometricEnabled.collectAsState()
     val appDisguiseEnabled by viewModel.appDisguiseEnabled.collectAsState()
     val showSystemApps by viewModel.showSystemApps.collectAsState()
+    val uninstallProtection by viewModel.uninstallProtection.collectAsState()
+    val requirePasswordForNlock by viewModel.requirePasswordForNlock.collectAsState()
     val gracePeriodSeconds by viewModel.gracePeriodSeconds.collectAsState()
 
     var showGracePeriodDialog by remember { mutableStateOf(false) }
@@ -94,6 +96,16 @@ internal fun SettingsScreen(
                 title = "Show System Apps",
                 checked = showSystemApps,
                 onCheckedChange = { viewModel.setShowSystemApps(it) }
+            )
+            SettingRow(
+                title = "Uninstall Protection (Lock Settings)",
+                checked = uninstallProtection,
+                onCheckedChange = { viewModel.setUninstallProtection(it) }
+            )
+            SettingRow(
+                title = "Require Password for NLock",
+                checked = requirePasswordForNlock,
+                onCheckedChange = { viewModel.setRequirePasswordForNlock(it) }
             )
             ClickableSettingRow(
                 title = "Auto-lock Interval",

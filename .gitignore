@@ -24,3 +24,12 @@ google-services.json
 
 # Log Files
 *.log
+
+# Graphify
+graphify-out/
+.graphifyignore
+
+# Release Artifacts
+/app/release/
+*.apk
+*.aab

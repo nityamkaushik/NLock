@@ -29,6 +29,9 @@ internal class AppLockAccessibilityService : AccessibilityService() {
     private var activelyUnlockedPackage: String? = null
     internal var isBiometricEnabled: Boolean = false
         private set
+    private var isSetupComplete: Boolean = false
+    private var uninstallProtectionEnabled: Boolean = true
+    private var requirePasswordForNlockEnabled: Boolean = true
 
     internal lateinit var overlayManager: LockOverlayManager
         private set
@@ -50,7 +53,14 @@ internal class AppLockAccessibilityService : AccessibilityService() {
         val pkg = event.packageName?.toString() ?: return
         val className = event.className?.toString() ?: ""
 
-        if (pkg == packageName || pkg == "com.android.systemui") return
+        if (pkg == "com.android.systemui") return
+        if (pkg == packageName) {
+            // Do not intercept if our lock screen is currently in the foreground (prevents infinite loops)
+            if (LockScreenActivity.currentInstance != null) return
+            // If self-lock is disabled or setup isn't complete, ignore our own package
+            if (!requirePasswordForNlockEnabled || !isSetupComplete) return
+        }
+
         if (className.contains("InputMethod") || className.contains("SoftInput") || pkg.contains("inputmethod") || pkg.contains("keyboard")) return
 
         if (pkg != currentForegroundPackage) {
@@ -71,10 +81,16 @@ internal class AppLockAccessibilityService : AccessibilityService() {
             }
         }
 
-        if (pkg in lockedPackages) {
+        val isUninstallProtectionApp = uninstallProtectionEnabled && 
+                (pkg == "com.android.settings" || pkg == "com.google.android.packageinstaller")
+        val isSelfLockApp = requirePasswordForNlockEnabled && pkg == packageName && isSetupComplete
+
+        if (pkg in lockedPackages || isUninstallProtectionApp || isSelfLockApp) {
             if (pkg == activelyUnlockedPackage) return
 
-            if (!isWithinGracePeriod(pkg)) {
+            val bypassGracePeriod = (pkg == packageName && requirePasswordForNlockEnabled)
+
+            if (bypassGracePeriod || !isWithinGracePeriod(pkg)) {
                 overlayManager.show(targetPackage = pkg)
             }
         }
@@ -133,6 +149,21 @@ internal class AppLockAccessibilityService : AccessibilityService() {
         serviceScope.launch {
             app.repository.biometricEnabled.collect { enabled ->
                 isBiometricEnabled = enabled
+            }
+        }
+        serviceScope.launch {
+            app.repository.setupComplete.collect { complete ->
+                isSetupComplete = complete
+            }
+        }
+        serviceScope.launch {
+            app.repository.uninstallProtection.collect { enabled ->
+                uninstallProtectionEnabled = enabled
+            }
+        }
+        serviceScope.launch {
+            app.repository.requirePasswordForNlock.collect { enabled ->
+                requirePasswordForNlockEnabled = enabled
             }
         }
     }

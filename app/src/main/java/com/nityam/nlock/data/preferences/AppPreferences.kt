@@ -35,6 +35,8 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
         val APP_DISGUISE_LABEL = stringPreferencesKey("app_disguise_label")
         val SETUP_COMPLETE = booleanPreferencesKey("setup_complete")
         val SHOW_SYSTEM_APPS = booleanPreferencesKey("show_system_apps")
+        val UNINSTALL_PROTECTION = booleanPreferencesKey("uninstall_protection")
+        val REQUIRE_PASSWORD_FOR_NLOCK = booleanPreferencesKey("require_password_for_nlock")
     }
 
     // ── Reads (Flow) ──
@@ -49,6 +51,8 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
     val appDisguiseLabel: Flow<String> = dataStore.data.map { it[APP_DISGUISE_LABEL] ?: "Calculator" }
     val setupComplete: Flow<Boolean> = dataStore.data.map { it[SETUP_COMPLETE] ?: false }
     val showSystemApps: Flow<Boolean> = dataStore.data.map { it[SHOW_SYSTEM_APPS] ?: false }
+    val uninstallProtection: Flow<Boolean> = dataStore.data.map { it[UNINSTALL_PROTECTION] ?: true }
+    val requirePasswordForNlock: Flow<Boolean> = dataStore.data.map { it[REQUIRE_PASSWORD_FOR_NLOCK] ?: true }
 
     // ── Writes (suspend) ──
 
@@ -85,5 +89,13 @@ internal class AppPreferences(private val dataStore: DataStore<Preferences>) {
 
     internal suspend fun setShowSystemApps(enabled: Boolean) {
         dataStore.edit { it[SHOW_SYSTEM_APPS] = enabled }
+    }
+
+    internal suspend fun setUninstallProtection(enabled: Boolean) {
+        dataStore.edit { it[UNINSTALL_PROTECTION] = enabled }
+    }
+
+    internal suspend fun setRequirePasswordForNlock(enabled: Boolean) {
+        dataStore.edit { it[REQUIRE_PASSWORD_FOR_NLOCK] = enabled }
     }
 }

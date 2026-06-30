@@ -37,6 +37,8 @@ internal class AppLockRepository(
     val appDisguiseEnabled: Flow<Boolean> = preferences.appDisguiseEnabled
     val appDisguiseLabel: Flow<String> = preferences.appDisguiseLabel
     val showSystemApps: Flow<Boolean> = preferences.showSystemApps
+    val uninstallProtection: Flow<Boolean> = preferences.uninstallProtection
+    val requirePasswordForNlock: Flow<Boolean> = preferences.requirePasswordForNlock
 
     /** Grace period as milliseconds for the service hot path. */
     fun observeGracePeriodMs(): Flow<Long> =
@@ -62,4 +64,10 @@ internal class AppLockRepository(
 
     suspend fun setShowSystemApps(enabled: Boolean) =
         preferences.setShowSystemApps(enabled)
+
+    suspend fun setUninstallProtection(enabled: Boolean) =
+        preferences.setUninstallProtection(enabled)
+
+    suspend fun setRequirePasswordForNlock(enabled: Boolean) =
+        preferences.setRequirePasswordForNlock(enabled)
 }

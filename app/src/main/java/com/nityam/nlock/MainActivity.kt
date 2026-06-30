@@ -29,16 +29,6 @@ internal class MainActivity : ComponentActivity() {
                 val isSetupComplete by repository.setupComplete.collectAsState(initial = false)
                 val appDisguiseEnabled by repository.appDisguiseEnabled.collectAsState(initial = false)
 
-                LaunchedEffect(Unit) {
-                    if (!PermissionHelper.isAccessibilityServiceEnabled(
-                            this@MainActivity,
-                            com.nityam.nlock.service.AppLockAccessibilityService::class.java
-                        )
-                    ) {
-                        PermissionHelper.openAccessibilitySettings(this@MainActivity)
-                    }
-                }
-
                 NLockNavGraph(
                     isDisguised = appDisguiseEnabled,
                     isSetupComplete = isSetupComplete
@@ -50,6 +40,17 @@ internal class MainActivity : ComponentActivity() {
                     OemGuideDialog(onDismiss = { showOemDialog = false })
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!PermissionHelper.isAccessibilityServiceEnabled(
+                this,
+                com.nityam.nlock.service.AppLockAccessibilityService::class.java
+            )
+        ) {
+            PermissionHelper.openAccessibilitySettings(this)
         }
     }
 }

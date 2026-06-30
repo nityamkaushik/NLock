@@ -1,6 +1,8 @@
 package com.nityam.nlock.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,6 +27,19 @@ internal fun NLockNavGraph(
     isSetupComplete: Boolean,
     navController: NavHostController = rememberNavController()
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(navController) {
+        navController.addOnDestinationChangedListener { _, _, _ ->
+            if (!com.nityam.nlock.util.PermissionHelper.isAccessibilityServiceEnabled(
+                    context,
+                    com.nityam.nlock.service.AppLockAccessibilityService::class.java
+                )
+            ) {
+                com.nityam.nlock.util.PermissionHelper.openAccessibilitySettings(context)
+            }
+        }
+    }
+
     val startDestination = when {
         isDisguised -> Routes.DECOY
         !isSetupComplete -> Routes.SETUP

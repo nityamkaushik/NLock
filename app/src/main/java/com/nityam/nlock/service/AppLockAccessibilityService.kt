@@ -64,11 +64,22 @@ internal class AppLockAccessibilityService : AccessibilityService() {
         if (className.contains("InputMethod") || className.contains("SoftInput") || pkg.contains("inputmethod") || pkg.contains("keyboard")) return
 
         if (pkg != currentForegroundPackage) {
-            if (currentGracePeriodMs <= 0L && activelyUnlockedPackage != null && activelyUnlockedPackage != pkg) {
-                gracePeriodMap.remove(activelyUnlockedPackage!!)
-            }
             if (activelyUnlockedPackage != null && activelyUnlockedPackage != pkg) {
-                activelyUnlockedPackage = null
+                val isUninstallTransition = uninstallProtectionEnabled &&
+                        (activelyUnlockedPackage == "com.android.settings" || activelyUnlockedPackage == "com.google.android.packageinstaller") &&
+                        (pkg == "com.android.settings" || pkg == "com.google.android.packageinstaller")
+
+                if (isUninstallTransition) {
+                    // Treat Settings and PackageInstaller as the same logical app to prevent double prompts
+                    val prevUnlockTime = gracePeriodMap[activelyUnlockedPackage!!] ?: System.currentTimeMillis()
+                    gracePeriodMap[pkg] = prevUnlockTime
+                    activelyUnlockedPackage = pkg
+                } else {
+                    if (currentGracePeriodMs <= 0L) {
+                        gracePeriodMap.remove(activelyUnlockedPackage!!)
+                    }
+                    activelyUnlockedPackage = null
+                }
             }
             currentForegroundPackage = pkg
 

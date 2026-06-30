@@ -59,6 +59,8 @@ internal class LockOverlayManager(private val service: AccessibilityService) {
         }
     }
 
+    private var lastShowTime = 0L
+
     /**
      * Show the lock for [targetPackage].
      *
@@ -66,13 +68,19 @@ internal class LockOverlayManager(private val service: AccessibilityService) {
      * 2. Launches [LockScreenActivity] with the target package.
      */
     fun show(targetPackage: String) {
+        val now = System.currentTimeMillis()
         // If already showing for the same package and the activity is alive, skip
         if (isAttached && currentTargetPackage == targetPackage) {
             if (LockScreenActivity.isInForeground || LockScreenActivity.currentInstance != null) {
                 return
             }
+            // Debounce to prevent multiple launches while activity is starting
+            if (now - lastShowTime < 1000L) {
+                return
+            }
         }
 
+        lastShowTime = now
         currentTargetPackage = targetPackage
         isAttached = true
 
